@@ -1,0 +1,165 @@
+<?php
+session_start();
+include_once("conexao.php");
+include_once("main.css");
+
+?>
+
+<!DOCTYPE html >
+
+<html lang="pt-BR">
+	
+  <head>
+	
+	
+	
+	    <title> PAS UNIT - Programação WEB </title>
+ 
+
+
+		<!--Cadastro de Hospitais-->
+
+
+	</head> 
+	
+<body> 
+
+<h1><font face="geneva";font color="blue"> Cadastrar Hospital</font></h1>
+		<?php
+		if(isset($_SESSION['msg'])){
+			echo $_SESSION['msg'];
+			unset($_SESSION['msg']);
+		}
+
+		//Receber o número da página
+		$pagina_atual = filter_input(INPUT_GET,'pagina', FILTER_SANITIZE_NUMBER_INT);
+		$pagina = (!empty($pagina_atual)) ? $pagina_atual : 1;
+
+		//Setar a quantidade de itens por pagina
+		$qnt_result_pg = 2;
+
+		//calcular o inicio visualização
+		$inicio = ($qnt_result_pg * $pagina) - $qnt_result_pg;
+
+		?>
+
+		<form method="POST" action="processa.php">
+
+			<label><font color="green";font size=+2><b>Nome</b></font>: </label>
+			<input type="text" name="address" placeholder="Digite o Nome do hospital"><br>
+
+			<label><font color="green";font size=+2><b>Endereço</b></font>: </label>
+			<input type="text" name="name" placeholder="Digite o Endereço do hospital"><br>
+
+			<label><font color="green";font size=+2><b>Latitude</b></font>: </label>
+			<input type="float" name="lat" placeholder="Digite a latitude"><br>
+
+			<label><font color="green";font size=+2><b>Longitude</b></font>: </label>
+			<input type="float" name="lng" placeholder="Digite a longetude"><br><br>
+
+			<input type="submit" value="Cadastrar"> <br>
+
+		</form>   <br>
+		
+		<a href="Listar.php">
+			<button>Listar</button> <br><br>
+			
+		<a href="index.php">
+			<button>Atualizar</button>
+			</a>  <br> <br>
+
+			
+		<!--Exibiçao do Mapa -->
+	
+		
+	<style>
+
+      #map {
+        height: 100%;
+		width: 100%}
+
+	  body {
+		background-color: #1FFAFA;
+	}
+
+      html, body {
+        height: 100%;
+        margin: 2%;
+        padding: 0%;
+    }
+    </style>
+
+   <div id="map"></div>
+
+    <script>
+	
+      var customLabel = { Hospital: {label: 'R'}, bar: {label: 'B'}};
+
+        function initMap() {
+        var map = new google.maps.Map(document.getElementById('map'), {
+          center: new google.maps.LatLng(-10.984547324643591, -37.046974173697656),
+          zoom: 10
+
+        });
+        var infoWindow = new google.maps.InfoWindow;
+
+          downloadUrl('resultado.php', function(data) {
+            var xml = data.responseXML;
+            var markers = xml.documentElement.getElementsByTagName('marker');
+            Array.prototype.forEach.call(markers, function(markerElem) {
+              var name = markerElem.getAttribute('name');
+              var address = markerElem.getAttribute('address');
+              var type = markerElem.getAttribute('type');
+              var point = new google.maps.LatLng(
+                  parseFloat(markerElem.getAttribute('lat')),
+                  parseFloat(markerElem.getAttribute('lng')));
+
+              var infowincontent = document.createElement('div');
+              var strong = document.createElement('strong');
+              strong.textContent = name
+              infowincontent.appendChild(strong);
+              infowincontent.appendChild(document.createElement('br'));
+
+              var text = document.createElement('text');
+              text.textContent = address
+              infowincontent.appendChild(text);
+              var icon = customLabel[type] || {};
+              var marker = new google.maps.Marker({
+                map: map,
+                position: point,
+                label: icon.label
+              });
+              marker.addListener('click', function() {
+                infoWindow.setContent(infowincontent);
+                infoWindow.open(map, marker);
+
+              });
+            });
+          });
+        }
+
+      function downloadUrl(url, callback) {
+        var request = window.ActiveXObject ?
+            new ActiveXObject('Microsoft.XMLHTTP') :
+            new XMLHttpRequest;
+
+        request.onreadystatechange = function() {
+          if (request.readyState == 4) {
+            request.onreadystatechange = doNothing;
+            callback(request, request.status);
+          }
+        };
+
+        request.open('GET', url, true);
+        request.send(null);
+      }
+
+      function doNothing() {}
+
+    </script>
+    <script async defer
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAZFBrU-vWhckVBhcpkwSMfRqNxSuwQS28&callback=initMap">
+    </script>
+	</html>
+	</body>
+	</!DOCTYPE html >
